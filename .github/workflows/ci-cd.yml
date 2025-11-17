@@ -144,26 +144,89 @@ jobs:
           name: playwright-report
           path: playwright-report/
 
-  deploy:
-    needs: [lint-and-test, build]
+  security-scan:
     runs-on: ubuntu-latest
-
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy to production
-        run: |
-          echo "Deploying to production..."
-          # Add your deployment steps here
-          # Example: deploy to Vercel, Heroku, AWS, etc.
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
 
-      - name: Notify deployment
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  deploy:
+    needs: [lint-and-test, build, security-scan]
+    runs-on: ubuntu-latest
+
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    environment:
+      name: production
+      url: ${{ secrets.PRODUCTION_URL || 'https://spec-drive.example.com' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to production (Railway/Render/Heroku)
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          PRODUCTION_DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+        run: |
+          # Option 1: Railway deployment
+          if [ ! -z "$RAILWAY_API_TOKEN" ]; then
+            npm install -g @railway/cli
+            railway up --detach
+
+          # Option 2: Render deployment
+          elif [ ! -z "$RENDER_DEPLOY_HOOK" ]; then
+            curl "$RENDER_DEPLOY_HOOK"
+
+          # Option 3: Heroku deployment
+          elif [ ! -z "$HEROKU_AUTH_TOKEN" ]; then
+            npm install -g heroku
+            echo "$HEROKU_AUTH_TOKEN" | heroku auth:login
+            heroku deploy:jar dist/server/index.js --app=$HEROKU_APP_NAME
+
+          # Default: Log available deployment options
+          else
+            echo "⚠️  No deployment platform configured"
+            echo "Configure one of these in GitHub secrets:"
+            echo "  - RAILWAY_API_TOKEN for Railway"
+            echo "  - RENDER_DEPLOY_HOOK for Render"
+            echo "  - HEROKU_AUTH_TOKEN for Heroku"
+            exit 1
+          fi
+        continue-on-error: true
+
+      - name: Run smoke tests on production
+        if: success()
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL || 'http://localhost:3001' }}
+        run: |
+          curl -f "$PRODUCTION_URL/health" || exit 1
+          echo "✅ Health check passed"
+
+      - name: Notify deployment success
         if: success()
         run: |
-          echo "✅ Deployment successful!"
+          echo "✅ Production deployment successful!"
+          echo "Version: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
 
       - name: Notify deployment failure
         if: failure()

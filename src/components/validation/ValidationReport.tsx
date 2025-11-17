@@ -9,11 +9,12 @@ import type { ValidationResult } from '@/lib/validation'
 
 interface ValidationReportProps {
   projectId: string
+  phase?: string
   artifacts: Record<string, string>
   onValidationComplete?: (results: ValidationResult[]) => void
 }
 
-export function ValidationReport({ projectId, artifacts, onValidationComplete }: ValidationReportProps) {
+export function ValidationReport({ projectId, phase, artifacts, onValidationComplete }: ValidationReportProps) {
   const [results, setResults] = useState<ValidationResult[]>([])
   const [loading, setLoading] = useState(false)
   const [validationStats, setValidationStats] = useState({
@@ -27,18 +28,26 @@ export function ValidationReport({ projectId, artifacts, onValidationComplete }:
     setLoading(true)
     try {
       const { validationEngine } = await import('@/lib/validation')
-      const validationResults = await validationEngine.validateArtifacts(artifacts)
+      // validateArtifacts requires projectId, phase, and artifacts
+      const validationReport = await validationEngine.validateArtifacts(
+        projectId || 'default',
+        phase || 'discovery',
+        artifacts as Record<string, any>
+      )
+
+      // ValidationReport has results property that contains the array of ValidationResults
+      const validationResults = (validationReport as any).results || []
       setResults(validationResults)
-      
+
       // Calculate stats
       const stats = {
         total: validationResults.length,
-        passed: validationResults.filter(r => r.passed).length,
-        failed: validationResults.filter(r => !r.passed && r.severity === 'error').length,
-        warnings: validationResults.filter(r => r.severity === 'warning').length
+        passed: validationResults.filter((r: any) => r.passed).length,
+        failed: validationResults.filter((r: any) => !r.passed && r.severity === 'error').length,
+        warnings: validationResults.filter((r: any) => r.severity === 'warning').length
       }
       setValidationStats(stats)
-      
+
       onValidationComplete?.(validationResults)
     } catch (error) {
       console.error('Validation failed:', error)
@@ -53,7 +62,7 @@ export function ValidationReport({ projectId, artifacts, onValidationComplete }:
     }
   }, [artifacts])
 
-  const getStatusIcon = (result: ValidationResult) => {
+  const getStatusIcon = (result: ValidationResult): React.ReactNode => {
     if (result.passed) {
       return <CheckCircle className="h-5 w-5 text-green-500" />
     }
@@ -199,28 +208,28 @@ export function ValidationReport({ projectId, artifacts, onValidationComplete }:
                           {getStatusBadge(result)}
                         </div>
                         <p className="text-sm text-gray-700">{result.message}</p>
-                        {result.details && (
+                        {(result.details ? (
                           <div className="mt-2 p-2 bg-white rounded border">
                             <details className="cursor-pointer">
                               <summary className="text-sm font-medium text-gray-900">
                                 View Details
                               </summary>
                               <div className="mt-2 text-xs text-gray-600">
-                                {Array.isArray(result.details) ? (
+                                {Array.isArray((result.details as any)) ? (
                                   <ul className="list-disc list-inside space-y-1">
-                                    {result.details.map((detail: any, index: number) => (
+                                    {(result.details as any[]).map((detail: any, index: number) => (
                                       <li key={index}>{JSON.stringify(detail)}</li>
                                     ))}
                                   </ul>
                                 ) : (
                                   <pre className="whitespace-pre-wrap">
-                                    {JSON.stringify(result.details, null, 2)}
+                                    {JSON.stringify((result.details as any), null, 2)}
                                   </pre>
                                 )}
                               </div>
                             </details>
                           </div>
-                        )}
+                        ) : null) as React.ReactNode}
                       </div>
                     </div>
                   </div>

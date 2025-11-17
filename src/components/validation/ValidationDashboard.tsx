@@ -15,7 +15,7 @@ import {
   Settings,
   BarChart3
 } from 'lucide-react'
-import { api } from '@/lib/api'
+import { apiClient } from '@/lib/api'
 
 interface ValidationMetrics {
   totalValidations: number
@@ -66,9 +66,9 @@ export function ValidationDashboard({ projectId }: ValidationDashboardProps) {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await api.get(`/validation/dashboard/${projectId}`)
-      if (response.success) {
-        const { metrics, ruleStats, recentReports } = response.data
+      const data = await apiClient.getValidationDashboard(projectId)
+      if (data) {
+        const { metrics, ruleStats, recentReports } = data
         setMetrics(metrics)
         setRuleStats(ruleStats)
         setRecentReports(recentReports)

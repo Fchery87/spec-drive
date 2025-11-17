@@ -248,18 +248,18 @@ export function ValidationRunner({ projectId, phase, onValidationComplete }: Val
                           </div>
                         )}
 
-                        {result.details && (
+                        {(result.details ? (
                           <details className="cursor-pointer">
                             <summary className="text-sm font-medium text-gray-900 hover:text-gray-700">
                               View Details
                             </summary>
                             <div className="mt-2 p-2 bg-white rounded border text-xs">
                               <pre className="whitespace-pre-wrap text-gray-600">
-                                {JSON.stringify(result.details, null, 2)}
+                                {JSON.stringify(result.details as any, null, 2)}
                               </pre>
                             </div>
                           </details>
-                        )}
+                        ) : null) as React.ReactNode}
                       </div>
                     </div>
                   </div>

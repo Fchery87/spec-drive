@@ -322,7 +322,7 @@ export class ApiClient {
 
   async getValidationHistory(projectId: string, limit = 10): Promise<any[]> {
     const response = await this.request(`/validation/reports/${projectId}?limit=${limit}`);
-    return response.data || [];
+    return Array.isArray(response.data) ? response.data : [];
   }
 
   async getValidationReport(reportId: string): Promise<any> {
