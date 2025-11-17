@@ -19,7 +19,6 @@ export async function checkRateLimit(
 ): Promise<{ allowed: boolean; remaining: number; resetAt: Date }> {
   try {
     const now = new Date();
-    const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW);
 
     // Find existing rate limit record
     const existing = await db

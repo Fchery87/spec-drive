@@ -1,10 +1,9 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { db } from '@/db';
 import { projects, projectArtifacts } from '@/db/schema';
 import { AuthenticatedRequest, authMiddleware } from '../middleware/auth';
-import { ApiError } from '../middleware/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();

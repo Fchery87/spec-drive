@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { db } from '../../db/index';
 import { users, authSessions } from '../../db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { AuthenticatedRequest, authMiddleware } from '../middleware/auth';
 import {
   generateAccessToken,
@@ -11,6 +11,11 @@ import {
   verifyRefreshToken,
 } from '../utils/tokenGenerator';
 import { checkRateLimit, resetRateLimit } from '../utils/rateLimiter';
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendWelcomeEmail,
+} from '../utils/email';
 
 const router = Router();
 
@@ -92,8 +97,13 @@ router.post('/signup', async (req: Request, res: Response) => {
 
     const user = newUser[0];
 
-    // TODO: Send verification email with emailVerificationToken
-    // Example: await sendVerificationEmail(email, emailVerificationToken);
+    // Send verification email
+    try {
+      await sendVerificationEmail(email, emailVerificationToken);
+    } catch (error) {
+      console.error('Failed to send verification email:', error);
+      // Continue anyway - user can request new email or verify later
+    }
 
     // Generate tokens
     const accessToken = generateAccessToken(user.id, user.email);
@@ -391,6 +401,14 @@ router.post('/verify-email', async (req: Request, res: Response) => {
       })
       .where(eq(users.id, user.id));
 
+    // Send welcome email
+    try {
+      await sendWelcomeEmail(user.email, user.name || 'User');
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+      // Continue anyway - verification was successful
+    }
+
     // Reset rate limit on success
     await resetRateLimit(clientIp, 'verifyEmail');
 
@@ -457,8 +475,13 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
       })
       .where(eq(users.id, user.id));
 
-    // TODO: Send password reset email with resetToken
-    // Example: await sendPasswordResetEmail(email, resetToken);
+    // Send password reset email
+    try {
+      await sendPasswordResetEmail(email, resetToken);
+    } catch (error) {
+      console.error('Failed to send password reset email:', error);
+      // Continue anyway - email will still be sent and user can try again
+    }
 
     // Reset rate limit on success
     await resetRateLimit(clientIp, 'passwordReset');

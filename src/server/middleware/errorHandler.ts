@@ -13,7 +13,7 @@ export class ApiError extends Error {
 
 export function errorHandler(
   error: Error | ApiError,
-  req: Request,
+  _req: Request,
   res: Response,
   _next: NextFunction
 ) {
