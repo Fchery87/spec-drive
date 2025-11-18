@@ -487,5 +487,5 @@ export class MockApiClient extends ApiClient {
   }
 }
 
-// Export the mock client for frontend development
-export const apiClient = new MockApiClient();
+// Export the real API client for production use
+export const apiClient = new ApiClient();

@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express'
+import { Router, Response } from 'express'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { projects, projectArtifacts, phaseHistory } from '@/db/schema'
@@ -18,11 +18,11 @@ const orchestrationStates = new Map<string, {
 }>()
 
 // GET /api/projects/:id/orchestration/progress - Get orchestration progress
-router.get('/projects/:id/orchestration/progress', async (req: Request, res: Response) => {
+router.get('/projects/:id/orchestration/progress', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params
     const state = orchestrationStates.get(id)
-    
+
     const [project] = await db.select().from(projects).where(eq(projects.id, id)).limit(1)
     if (!project) {
       return res.status(404).json({ success: false, error: 'Project not found' })
@@ -198,12 +198,12 @@ router.post('/projects/:id/github/create', async (req: AuthenticatedRequest, res
 })
 
 // GET /api/projects/:id/phases/history - Get phase history
-router.get('/projects/:id/phases/history', async (req: Request, res: Response) => {
+router.get('/projects/:id/phases/history', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params
-    
+
     const history = await db.select().from(phaseHistory).where(eq(phaseHistory.projectId, id))
-    
+
     res.json({
       success: true,
       data: history

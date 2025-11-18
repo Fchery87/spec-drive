@@ -144,13 +144,35 @@ export function ProjectDetail() {
 
   const handleAdvancePhase = async () => {
     if (!id) return
-    
+
     try {
       await apiClient.advancePhase(id)
       await loadProject()
       await loadOrchestrationProgress()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to advance phase')
+    }
+  }
+
+  const handleApproveStack = async () => {
+    if (!id) return
+
+    try {
+      await apiClient.approveStack(id)
+      await loadProject()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve stack')
+    }
+  }
+
+  const handleApproveDependencies = async () => {
+    if (!id) return
+
+    try {
+      await apiClient.approveDependencies(id)
+      await loadProject()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve dependencies')
     }
   }
 
@@ -306,18 +328,18 @@ export function ProjectDetail() {
                   <p className="text-sm text-yellow-800">
                     Stack approval required to continue to next phase.
                   </p>
-                  <Button size="sm" className="mt-2">
+                  <Button size="sm" className="mt-2" onClick={handleApproveStack}>
                     Approve Stack
                   </Button>
                 </div>
               )}
-              
+
               {!project.dependenciesApproved && project.currentPhase === 'dependencies' && (
                 <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                   <p className="text-sm text-yellow-800">
                     Dependencies approval required to continue to next phase.
                   </p>
-                  <Button size="sm" className="mt-2">
+                  <Button size="sm" className="mt-2" onClick={handleApproveDependencies}>
                     Approve Dependencies
                   </Button>
                 </div>

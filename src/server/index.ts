@@ -106,8 +106,8 @@ app.get('/health', (_req, res) => {
 // API routes
 app.use('/api/auth', authRouter);
 app.use('/api/projects', authMiddleware, projectsRouter);
-app.use('/api/artifacts', authMiddleware, artifactsRouter);
-app.use('/api/orchestration', authMiddleware, orchestrationRouter);
+app.use('/api', authMiddleware, artifactsRouter);
+app.use('/api', authMiddleware, orchestrationRouter);
 app.use('/api/validation', authMiddleware, validationRouter);
 
 // Error handling
