@@ -5,8 +5,10 @@ import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
 
 // Load environment variables from .env.local
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-dotenv.config({ path: path.resolve(__dirname, '../../.env.local') })
+const currentDir = typeof __dirname !== 'undefined'
+  ? __dirname
+  : path.dirname(fileURLToPath(import.meta.url))
+dotenv.config({ path: path.resolve(currentDir, '../../.env.local') })
 
 let db: any
 

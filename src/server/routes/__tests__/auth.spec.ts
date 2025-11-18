@@ -5,7 +5,7 @@
  */
 
 import request from 'supertest';
-import { app, server } from '../../index';
+import { testApp as app } from '../../test/testApp';
 import { testHelpers } from '../../test/setup';
 
 describe('Auth Routes - Comprehensive Tests', () => {
@@ -15,10 +15,6 @@ describe('Auth Routes - Comprehensive Tests', () => {
     password: 'ValidPassword123',
     name: 'Valid User',
   };
-
-  afterAll(async () => {
-    server.close();
-  });
 
   // ========================================
   // POST /api/auth/signup Tests

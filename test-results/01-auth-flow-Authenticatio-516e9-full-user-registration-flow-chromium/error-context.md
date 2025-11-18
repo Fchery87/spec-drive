@@ -1,0 +1,213 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "SpecDrive Orchestrator AI-guided specs to production clarity" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - generic [ref=e17]: SpecDrive
+            - generic [ref=e18]: Orchestrator
+          - paragraph [ref=e19]: AI-guided specs to production clarity
+      - generic [ref=e20]:
+        - link "Overview" [ref=e21] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e22]:
+          - button "Toggle theme" [ref=e23] [cursor=pointer]:
+            - img
+          - button "Sign In" [ref=e24] [cursor=pointer]:
+            - img
+            - text: Sign In
+  - main [ref=e25]:
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]: Spec-first orchestration OS
+          - generic [ref=e30]:
+            - heading "From idea to handoff in six guided phases." [level=1] [ref=e31]
+            - paragraph [ref=e32]: SpecDrive aligns analysts, architects, and AI copilots around a single source of truth so you can ship production-ready instructions faster than ever.
+          - generic [ref=e33]:
+            - link "Start New Project" [ref=e34] [cursor=pointer]:
+              - /url: /projects/new
+              - text: Start New Project
+              - img
+            - link "See sample HANDOFF" [ref=e35] [cursor=pointer]:
+              - /url: /docs/HANDOFF_SAMPLE.md
+            - link "Explore workflow" [ref=e36] [cursor=pointer]:
+              - /url: /overview
+          - generic [ref=e37]:
+            - generic [ref=e38]:
+              - paragraph [ref=e39]: Specs delivered
+              - paragraph [ref=e40]: 480+
+            - generic [ref=e41]:
+              - paragraph [ref=e42]: Median handoff time
+              - paragraph [ref=e43]: 2.6 hrs
+            - generic [ref=e44]:
+              - paragraph [ref=e45]: Approval accuracy
+              - paragraph [ref=e46]: 94%
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - img [ref=e50]
+            - paragraph [ref=e53]: Guided Orchestration
+          - paragraph [ref=e54]: Every artifact is generated, reviewed, and approved in a predictable flow.
+          - list [ref=e55]:
+            - listitem [ref=e56]:
+              - generic [ref=e57]: "1"
+              - generic [ref=e58]:
+                - paragraph [ref=e59]: Analysis
+                - paragraph [ref=e60]: Clarify vision, personas, KPIs, and constraints.
+            - listitem [ref=e61]:
+              - generic [ref=e62]: "2"
+              - generic [ref=e63]:
+                - paragraph [ref=e64]: Stack Selection
+                - paragraph [ref=e65]: Approve platform choices with rationale and tradeoffs.
+            - listitem [ref=e66]:
+              - generic [ref=e67]: "3"
+              - generic [ref=e68]:
+                - paragraph [ref=e69]: Spec
+                - paragraph [ref=e70]: Generate PRDs, API contracts, and data models.
+            - listitem [ref=e71]:
+              - generic [ref=e72]: "4"
+              - generic [ref=e73]:
+                - paragraph [ref=e74]: Dependencies
+                - paragraph [ref=e75]: Validate packages, risk notes, and legal/licensing.
+            - listitem [ref=e76]:
+              - generic [ref=e77]: "5"
+              - generic [ref=e78]:
+                - paragraph [ref=e79]: Solutioning
+                - paragraph [ref=e80]: Map architecture, epics, and workflows into delivery plans.
+            - listitem [ref=e81]:
+              - generic [ref=e82]: "6"
+              - generic [ref=e83]:
+                - paragraph [ref=e84]: Done
+                - paragraph [ref=e85]: Export HANDOFF.md with traceability for downstream teams.
+      - generic [ref=e86]:
+        - generic [ref=e88]:
+          - img [ref=e90]
+          - paragraph [ref=e93]: Spec-first orchestration
+          - paragraph [ref=e94]: Guide analysts, architects, and AI agents through a shared source of truth.
+        - generic [ref=e96]:
+          - img [ref=e98]
+          - paragraph [ref=e102]: Stack-aware decisions
+          - paragraph [ref=e103]: Bake tech constraints into every phase so proposals and PRDs stay in sync.
+        - generic [ref=e105]:
+          - img [ref=e107]
+          - paragraph [ref=e110]: Production-ready handoffs
+          - paragraph [ref=e111]: Deliver curated PRDs, artifacts, and bundling so engineering can ship faster.
+      - generic [ref=e112]:
+        - generic [ref=e113]:
+          - generic [ref=e114]:
+            - generic [ref=e115]: Workflow in one glance
+            - paragraph [ref=e116]: Every phase knows what’s next
+            - paragraph [ref=e117]: Analysts, architects, and engineers stay aligned because the orchestrator enforces gates before moving ahead.
+          - link "Explore Workflow" [ref=e118] [cursor=pointer]:
+            - /url: /projects/new
+            - text: Explore Workflow
+            - img
+        - generic [ref=e120]:
+          - generic [ref=e121]:
+            - img [ref=e123]
+            - paragraph [ref=e127]: Phase choreography
+            - paragraph [ref=e128]: The platform decides whether to execute AI agents or request approvals before advancing.
+          - generic [ref=e129]:
+            - img [ref=e131]
+            - paragraph [ref=e141]: Artifact lineage
+            - paragraph [ref=e142]: Every deliverable—PRDs, data models, dependency proposals—is versioned and traceable.
+          - generic [ref=e143]:
+            - img [ref=e145]
+            - paragraph [ref=e149]: Gate reviews
+            - paragraph [ref=e150]: Stakeholders sign off on stacks and dependencies before downstream automation continues.
+      - generic [ref=e151]:
+        - generic [ref=e152]:
+          - generic [ref=e153]: Outcome highlight
+          - paragraph [ref=e154]: See exactly what you hand off
+          - paragraph [ref=e155]: Every project bundles PRDs, API schemas, dependency memos, and a final HANDOFF.md prompt. Preview the quality downstream teams receive.
+          - generic [ref=e156]:
+            - link "See sample HANDOFF" [ref=e157] [cursor=pointer]:
+              - /url: /docs/HANDOFF_SAMPLE.md
+            - link "Generate your own" [ref=e158] [cursor=pointer]:
+              - /url: /projects/new
+        - generic [ref=e160]:
+          - generic [ref=e161]:
+            - img [ref=e162]
+            - paragraph [ref=e165]: Excerpt — HANDOFF.md
+          - generic [ref=e167]: "## Project Brief Aurora Assist is a multi-channel support companion that helps... Personas: Support Lead, Implementation Engineer, End Users ## Functional Requirements - Real-time ticket ingestion from HelpScout, Slack, and Email - Spec-driven triage workflow that tags urgency, KPIs affected - Knowledge graph search across PRD, API specs, and dependency memos - Human-in-the-loop approvals for escalations"
+      - generic [ref=e168]:
+        - generic [ref=e169]:
+          - generic [ref=e170]:
+            - generic [ref=e171]: Operational uplift
+            - paragraph [ref=e172]: Teams ship with clarity
+          - link "View live projects" [ref=e173] [cursor=pointer]:
+            - /url: /dashboard
+        - generic [ref=e175]:
+          - generic [ref=e176]:
+            - generic [ref=e177]:
+              - img [ref=e178]
+              - generic [ref=e180]: Operational lift
+            - paragraph [ref=e181]: Hand-off turnaround dropped from days to hours.
+            - paragraph [ref=e182]: Stakeholders approve dependencies before a single line of code ships.
+            - generic [ref=e183]: Head of Platform, Alto Robotics
+          - generic [ref=e184]:
+            - generic [ref=e185]:
+              - img [ref=e186]
+              - generic [ref=e188]: Operational lift
+            - paragraph [ref=e189]: 4 squads rely on SpecDrive to align AI-generated artifacts with tech leadership requirements.
+            - paragraph [ref=e190]: "Spec-drive trifecta: requirements, architecture, validation summaries."
+            - generic [ref=e191]: Eng Director, B2B SaaS
+          - generic [ref=e192]:
+            - generic [ref=e193]:
+              - img [ref=e194]
+              - generic [ref=e196]: Operational lift
+            - paragraph [ref=e197]: 92% of dependency proposals are approved on the first pass.
+            - paragraph [ref=e198]: Risks are documented in-context, so reviewers act faster.
+            - generic [ref=e199]: Security Lead, Enterprise
+      - generic [ref=e202]:
+        - generic [ref=e203]:
+          - paragraph [ref=e204]: Ready to orchestrate your next build?
+          - paragraph [ref=e205]: Launch a project in minutes, invite stakeholders, and watch every artifact align itself automatically.
+        - generic [ref=e206]:
+          - link "Start New Project" [ref=e207] [cursor=pointer]:
+            - /url: /projects/new
+          - link "See sample HANDOFF" [ref=e208] [cursor=pointer]:
+            - /url: /docs/HANDOFF_SAMPLE.md
+  - contentinfo [ref=e209]:
+    - generic [ref=e210]:
+      - generic [ref=e211]:
+        - generic [ref=e219]:
+          - paragraph [ref=e220]: SpecDrive Orchestrator
+          - paragraph [ref=e221]: Elegant Luxury theme · AI-guided delivery
+        - paragraph [ref=e222]: Build, validate, and launch specification-driven projects with clarity across product, engineering, and validation workflows.
+        - generic [ref=e223]:
+          - generic [ref=e224]: Crafted for premium experience
+          - generic [ref=e225]: Elegant Luxury UI kit
+      - generic [ref=e226]:
+        - generic [ref=e227]:
+          - paragraph [ref=e228]: Product
+          - generic [ref=e229]:
+            - link "Dashboard" [ref=e230] [cursor=pointer]:
+              - /url: /
+            - link "New Project" [ref=e231] [cursor=pointer]:
+              - /url: /projects/new
+            - link "Auth" [ref=e232] [cursor=pointer]:
+              - /url: /auth
+        - generic [ref=e233]:
+          - paragraph [ref=e234]: Resources
+          - generic [ref=e235]:
+            - link "Overview" [ref=e236] [cursor=pointer]:
+              - /url: README.md
+            - link "Production" [ref=e237] [cursor=pointer]:
+              - /url: PRODUCTION_CHECKLIST.md
+            - link "Roadmap" [ref=e238] [cursor=pointer]:
+              - /url: ROADMAP_TO_10_10.md
+        - generic [ref=e239]:
+          - paragraph [ref=e240]: Support
+          - generic [ref=e241]:
+            - link "Email support" [ref=e242] [cursor=pointer]:
+              - /url: mailto:support@specdrive.app
+            - link "Docs guide" [ref=e243] [cursor=pointer]:
+              - /url: DOCS_GUIDE.md
+            - link "Next steps" [ref=e244] [cursor=pointer]:
+              - /url: NEXT_STEPS.md
+```

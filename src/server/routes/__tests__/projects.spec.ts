@@ -5,14 +5,11 @@
  */
 
 import request from 'supertest';
-import { Express } from 'express';
+import { testApp as app } from '../../test/testApp';
 import { db } from '@/db';
 import { projects, projectArtifacts } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { createTestUser, testHelpers } from '../../test/setup';
-
-// Mock Express app for testing
-let app: Express;
 
 // Test variables
 let testUser: any;
@@ -21,10 +18,6 @@ let authToken: string;
 
 describe('Projects CRUD Operations', () => {
   beforeAll(async () => {
-    // Setup test app
-    const { default: createApp } = await import('@/server');
-    app = createApp();
-
     // Create test user
     testUser = await createTestUser();
 

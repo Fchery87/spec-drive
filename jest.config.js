@@ -32,7 +32,11 @@ export default {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
         jsx: 'react-jsx',
+        module: 'commonjs',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
       },
+      useESM: false,
     }],
   },
   testTimeout: 10000,

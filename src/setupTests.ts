@@ -2,6 +2,16 @@
  * Jest setup file for configuring testing environment
  */
 
+// Mock database module to avoid ESM/CommonJS conflicts
+jest.mock('@/db', () => require('./__mocks__/db'));
+jest.mock('./db', () => require('./__mocks__/db'));
+
+// Mock environment variables for tests
+process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'test-jwt-secret-minimum-32-characters-long';
+process.env.REFRESH_TOKEN_SECRET = 'test-refresh-token-secret-minimum-32-characters-long';
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
+
 // Only mock window.matchMedia if window is defined (browser/jsdom environment)
 if (typeof window !== 'undefined') {
   import('@testing-library/jest-dom')

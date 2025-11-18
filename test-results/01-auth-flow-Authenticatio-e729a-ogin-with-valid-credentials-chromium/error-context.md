@@ -1,0 +1,62 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "SpecDrive Orchestrator AI-guided specs to production clarity" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - generic [ref=e17]: SpecDrive
+            - generic [ref=e18]: Orchestrator
+          - paragraph [ref=e19]: AI-guided specs to production clarity
+      - generic [ref=e20]:
+        - link "Overview" [ref=e21] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e22]:
+          - button "Toggle theme" [ref=e23] [cursor=pointer]:
+            - img
+          - button "Sign In" [ref=e24] [cursor=pointer]:
+            - img
+            - text: Sign In
+  - main [ref=e25]
+  - contentinfo [ref=e26]:
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e36]:
+          - paragraph [ref=e37]: SpecDrive Orchestrator
+          - paragraph [ref=e38]: Elegant Luxury theme · AI-guided delivery
+        - paragraph [ref=e39]: Build, validate, and launch specification-driven projects with clarity across product, engineering, and validation workflows.
+        - generic [ref=e40]:
+          - generic [ref=e41]: Crafted for premium experience
+          - generic [ref=e42]: Elegant Luxury UI kit
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - paragraph [ref=e45]: Product
+          - generic [ref=e46]:
+            - link "Dashboard" [ref=e47] [cursor=pointer]:
+              - /url: /
+            - link "New Project" [ref=e48] [cursor=pointer]:
+              - /url: /projects/new
+            - link "Auth" [ref=e49] [cursor=pointer]:
+              - /url: /auth
+        - generic [ref=e50]:
+          - paragraph [ref=e51]: Resources
+          - generic [ref=e52]:
+            - link "Overview" [ref=e53] [cursor=pointer]:
+              - /url: README.md
+            - link "Production" [ref=e54] [cursor=pointer]:
+              - /url: PRODUCTION_CHECKLIST.md
+            - link "Roadmap" [ref=e55] [cursor=pointer]:
+              - /url: ROADMAP_TO_10_10.md
+        - generic [ref=e56]:
+          - paragraph [ref=e57]: Support
+          - generic [ref=e58]:
+            - link "Email support" [ref=e59] [cursor=pointer]:
+              - /url: mailto:support@specdrive.app
+            - link "Docs guide" [ref=e60] [cursor=pointer]:
+              - /url: DOCS_GUIDE.md
+            - link "Next steps" [ref=e61] [cursor=pointer]:
+              - /url: NEXT_STEPS.md
+```
