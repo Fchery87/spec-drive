@@ -1,0 +1,82 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "SpecDrive Orchestrator AI-guided specs to production clarity" [ref=e6]:
+        - /url: /
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - generic [ref=e17]: SpecDrive
+            - generic [ref=e18]: Orchestrator
+          - paragraph [ref=e19]: AI-guided specs to production clarity
+      - generic [ref=e20]:
+        - link "Overview" [ref=e21]:
+          - /url: /
+        - generic [ref=e22]:
+          - button "Toggle theme" [ref=e23] [cursor=pointer]:
+            - img
+          - button "Sign In" [active] [ref=e24] [cursor=pointer]:
+            - img
+            - text: Sign In
+  - main [ref=e25]:
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - heading "Spec-Driven Orchestrator" [level=1] [ref=e29]
+        - paragraph [ref=e30]: AI-powered project specification and orchestration platform
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - generic [ref=e33]: Sign In
+          - generic [ref=e34]: Welcome back! Please sign in to your account.
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - generic [ref=e37]:
+              - text: Email
+              - textbox "Email" [ref=e38]:
+                - /placeholder: Enter your email
+            - generic [ref=e39]:
+              - text: Password
+              - textbox "Password" [ref=e40]:
+                - /placeholder: Enter your password
+            - button "Sign In" [ref=e41] [cursor=pointer]
+          - button "Don't have an account? Sign up" [ref=e43] [cursor=pointer]
+  - contentinfo [ref=e44]:
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - generic [ref=e54]:
+          - paragraph [ref=e55]: SpecDrive Orchestrator
+          - paragraph [ref=e56]: Elegant Luxury theme · AI-guided delivery
+        - paragraph [ref=e57]: Build, validate, and launch specification-driven projects with clarity across product, engineering, and validation workflows.
+        - generic [ref=e58]:
+          - generic [ref=e59]: Crafted for premium experience
+          - generic [ref=e60]: Elegant Luxury UI kit
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - paragraph [ref=e63]: Product
+          - generic [ref=e64]:
+            - link "Dashboard" [ref=e65]:
+              - /url: /
+            - link "New Project" [ref=e66]:
+              - /url: /projects/new
+            - link "Auth" [ref=e67]:
+              - /url: /auth
+        - generic [ref=e68]:
+          - paragraph [ref=e69]: Resources
+          - generic [ref=e70]:
+            - link "Overview" [ref=e71]:
+              - /url: README.md
+            - link "Production" [ref=e72]:
+              - /url: PRODUCTION_CHECKLIST.md
+            - link "Roadmap" [ref=e73]:
+              - /url: ROADMAP_TO_10_10.md
+        - generic [ref=e74]:
+          - paragraph [ref=e75]: Support
+          - generic [ref=e76]:
+            - link "Email support" [ref=e77]:
+              - /url: mailto:support@specdrive.app
+            - link "Docs guide" [ref=e78]:
+              - /url: DOCS_GUIDE.md
+            - link "Next steps" [ref=e79]:
+              - /url: NEXT_STEPS.md
+```
