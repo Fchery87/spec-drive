@@ -5,12 +5,32 @@ import 'dotenv/config'
 let db: any
 
 try {
-  const sql = neon(process.env.DATABASE_URL || '')
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not defined. Please check your .env.local file.')
+  }
+
+  const sql = neon(process.env.DATABASE_URL)
   db = drizzle(sql)
-  console.log('✅ Database connection initialized')
+  console.log('✅ Database connection initialized successfully')
 } catch (error) {
-  console.log('⚠️  Database not available, using mock data for development')
-  // Mock database for development
+  const errorMessage = error instanceof Error ? error.message : String(error)
+  console.error('❌ Failed to initialize database connection:', errorMessage)
+  console.error('Error details:', {
+    hasDatabaseUrl: !!process.env.DATABASE_URL,
+    databaseUrlLength: process.env.DATABASE_URL?.length,
+    nodeEnv: process.env.NODE_ENV,
+  })
+
+  // In production, fail fast. In development, optionally provide mock for testing
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      `Database connection failed: ${errorMessage}. ` +
+      'Database connectivity is required in production environments.'
+    )
+  }
+
+  // Development fallback with warning
+  console.warn('⚠️  Using mock database for development. This will not persist data.')
   db = {
     select: () => ({ from: () => ({ where: () => ({ limit: () => Promise.resolve([]) }) }) }),
     insert: () => ({ values: () => ({ returning: () => Promise.resolve([{}]) }) }),

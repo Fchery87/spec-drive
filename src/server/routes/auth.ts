@@ -582,19 +582,24 @@ router.post('/reset-password', async (req: Request, res: Response) => {
     // Hash new password
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
-    // Update user password and clear reset token
-    await db
-      .update(users)
-      .set({
-        passwordHash,
-        passwordResetToken: null,
-        passwordResetExpiresAt: null,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, user.id));
+    // Use transaction to ensure both password update and session invalidation succeed together
+    // This prevents inconsistent state if one operation succeeds and the other fails
+    await db.transaction(async (tx) => {
+      // Update user password and clear reset token
+      await tx
+        .update(users)
+        .set({
+          passwordHash,
+          passwordResetToken: null,
+          passwordResetExpiresAt: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, user.id));
 
-    // Invalidate all existing refresh tokens for this user
-    await db.delete(authSessions).where(eq(authSessions.userId, user.id));
+      // Invalidate all existing refresh tokens for this user
+      // This forces them to log in again with their new password
+      await tx.delete(authSessions).where(eq(authSessions.userId, user.id));
+    });
 
     res.json({
       success: true,
