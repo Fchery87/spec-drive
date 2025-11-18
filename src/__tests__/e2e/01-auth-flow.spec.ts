@@ -154,14 +154,18 @@ test.describe('Authentication Flow', () => {
     // Switch to signup mode
     await page.click('text=Don\'t have an account? Sign up');
 
+    // Verify password field has minLength validation
+    const passwordInput = page.locator('#password');
+    await expect(passwordInput).toHaveAttribute('minLength', '6');
+
     // Fill with weak password (less than 6 characters)
     await page.fill('#name', 'Test User');
     await page.fill('#email', `weak-pass-${Date.now()}@example.com`);
     await page.fill('#password', '123');  // Too short
     await page.click('button[type="submit"]');
 
-    // Should show password validation error in the alert
-    // The error message is "Password must be at least 6 characters"
-    await expect(page.locator('[role="alert"], .text-destructive, [class*="alert"]').filter({ hasText: /6 characters/i })).toBeVisible({ timeout: 5000 });
+    // Browser's native validation will prevent form submission
+    // Verify we're still on the auth page (form didn't submit)
+    await expect(page).toHaveURL(/.*auth/);
   });
 });

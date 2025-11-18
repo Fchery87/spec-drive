@@ -77,6 +77,9 @@ test.describe('Project Workflow', () => {
     // Create a project first using the wizard
     await page.click('text=New Project');
 
+    // Wait for wizard page to load
+    await expect(page).toHaveURL(/.*projects\/new/);
+
     // Step 1: Basic info
     await page.fill('#name', testProject.name);
     await page.fill('#description', testProject.description);
@@ -101,6 +104,7 @@ test.describe('Project Workflow', () => {
   test('should update project information', async ({ page }) => {
     // Create a project first
     await page.click('text=New Project');
+    await expect(page).toHaveURL(/.*projects\/new/);
 
     await page.fill('#name', 'Original Project Name');
     await page.fill('#description', 'Original description');
@@ -126,6 +130,7 @@ test.describe('Project Workflow', () => {
     // Create a project
     const projectName = `Delete Test ${Date.now()}`;
     await page.click('text=New Project');
+    await expect(page).toHaveURL(/.*projects\/new/);
 
     await page.fill('#name', projectName);
     await page.fill('#description', 'To be deleted');
@@ -152,6 +157,7 @@ test.describe('Project Workflow', () => {
     // Create a project using the wizard
     const projectName = `List Test ${Date.now()}`;
     await page.click('text=New Project');
+    await expect(page).toHaveURL(/.*projects\/new/);
 
     await page.fill('#name', projectName);
     await page.fill('#description', 'Test project for listing');
@@ -184,6 +190,7 @@ test.describe('Project Workflow', () => {
   test('should validate required fields when creating project', async ({ page }) => {
     // Navigate to project wizard
     await page.click('text=New Project');
+    await expect(page).toHaveURL(/.*projects\/new/);
 
     // Try to proceed without filling required fields
     // The Next button should be disabled when fields are empty
@@ -208,6 +215,7 @@ test.describe('Project Workflow', () => {
   test('should navigate through project phases', async ({ page }) => {
     // Create a project
     await page.click('text=New Project');
+    await expect(page).toHaveURL(/.*projects\/new/);
 
     await page.fill('#name', 'Phase Test Project');
     await page.fill('#description', 'Testing phase navigation');
