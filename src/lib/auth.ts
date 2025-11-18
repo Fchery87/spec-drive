@@ -56,9 +56,12 @@ class AuthClient {
         throw new Error(data.error || 'Sign up failed')
       }
 
-      if (data.data?.token) {
-        localStorage.setItem('auth_token', data.data.token)
-        localStorage.setItem('auth_expires', data.data.expiresAt)
+      if (data.data?.accessToken) {
+        localStorage.setItem('auth_token', data.data.accessToken)
+        localStorage.setItem('refresh_token', data.data.refreshToken)
+        // Calculate expiration time (15 minutes from now for access token)
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        localStorage.setItem('auth_expires', expiresAt)
       }
 
       return data.data
@@ -98,9 +101,12 @@ class AuthClient {
         throw new Error(data.error || 'Sign in failed')
       }
 
-      if (data.data?.token) {
-        localStorage.setItem('auth_token', data.data.token)
-        localStorage.setItem('auth_expires', data.data.expiresAt)
+      if (data.data?.accessToken) {
+        localStorage.setItem('auth_token', data.data.accessToken)
+        localStorage.setItem('refresh_token', data.data.refreshToken)
+        // Calculate expiration time (15 minutes from now for access token)
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        localStorage.setItem('auth_expires', expiresAt)
       }
 
       return data.data

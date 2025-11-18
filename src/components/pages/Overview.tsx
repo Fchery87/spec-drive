@@ -265,7 +265,7 @@ Personas: Support Lead, Implementation Engineer, End Users
             <p className="text-lg font-semibold text-foreground">Teams ship with clarity</p>
           </div>
           <Button asChild variant="ghost" className="hidden items-center gap-1 text-primary md:flex">
-            <Link to="/">View live projects</Link>
+            <Link to="/dashboard">View live projects</Link>
           </Button>
         </div>
         <Card className="border border-border/70 shadow-[var(--shadow-sm)]">

@@ -16,8 +16,9 @@ function App() {
         <Header />
         <main className="mx-auto max-w-6xl px-4 py-10">
           <Routes>
+            <Route path="/" element={<Overview />} />
             <Route path="/overview" element={<Overview />} />
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>

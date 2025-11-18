@@ -1,6 +1,12 @@
 import { neon } from '@neondatabase/serverless'
 import { drizzle } from 'drizzle-orm/neon-http'
-import 'dotenv/config'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import dotenv from 'dotenv'
+
+// Load environment variables from .env.local
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+dotenv.config({ path: path.resolve(__dirname, '../../.env.local') })
 
 let db: any
 
@@ -31,11 +37,35 @@ try {
 
   // Development fallback with warning
   console.warn('⚠️  Using mock database for development. This will not persist data.')
+
+  // Mock database that properly chains Drizzle ORM methods
+  const createQueryChain = () => ({
+    limit: () => Promise.resolve([]),
+    where: () => ({ limit: () => Promise.resolve([]) }),
+    returning: () => Promise.resolve([])
+  });
+
   db = {
-    select: () => ({ from: () => ({ where: () => ({ limit: () => Promise.resolve([]) }) }) }),
-    insert: () => ({ values: () => ({ returning: () => Promise.resolve([{}]) }) }),
-    update: () => ({ set: () => ({ where: () => ({ returning: () => Promise.resolve([{}]) }) }) }),
-    delete: () => ({ where: () => ({ returning: () => Promise.resolve([{}]) }) })
+    select: () => ({
+      from: () => createQueryChain()
+    }),
+    insert: () => ({
+      values: () => ({
+        returning: () => Promise.resolve([{ id: 'mock-id' }])
+      })
+    }),
+    update: () => ({
+      set: () => ({
+        where: () => ({
+          returning: () => Promise.resolve([{ id: 'mock-id' }])
+        })
+      })
+    }),
+    delete: () => ({
+      where: () => ({
+        returning: () => Promise.resolve([])
+      })
+    })
   }
 }
 

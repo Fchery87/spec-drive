@@ -8,7 +8,7 @@ export function AuthPage() {
 
   const handleSuccess = () => {
     // Redirect to dashboard after successful auth
-    navigate('/')
+    navigate('/dashboard')
   }
 
   const toggleMode = () => {

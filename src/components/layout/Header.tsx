@@ -109,27 +109,27 @@ export function Header() {
 
         <div className="flex items-center gap-4">
           <Button
-            variant={isActive('/overview') ? 'secondary' : 'ghost'}
+            variant={isActive('/') ? 'secondary' : 'ghost'}
             asChild
             className={cn(
               'rounded-lg px-3',
-              isActive('/overview') && 'shadow-[var(--shadow-sm)]'
+              isActive('/') && 'shadow-[var(--shadow-sm)]'
             )}
           >
-            <Link to="/overview">Overview</Link>
+            <Link to="/">Overview</Link>
           </Button>
 
           {user && (
             <>
               <Button
-                variant={isActive('/') ? 'secondary' : 'ghost'}
+                variant={isActive('/dashboard') ? 'secondary' : 'ghost'}
                 asChild
                 className={cn(
                   'rounded-lg px-3',
-                  isActive('/') && 'shadow-[var(--shadow-sm)]'
+                  isActive('/dashboard') && 'shadow-[var(--shadow-sm)]'
                 )}
               >
-                <Link to="/">Dashboard</Link>
+                <Link to="/dashboard">Dashboard</Link>
               </Button>
 
               <Button
