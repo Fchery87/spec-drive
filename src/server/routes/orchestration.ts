@@ -243,37 +243,141 @@ interface OrchestrationState {
   startTime?: Date
 }
 
+// Phase artifacts configuration
+const phaseArtifacts: Record<string, { name: string; agent: string }[]> = {
+  analysis: [
+    { name: 'constitution.md', agent: 'Analyst' },
+    { name: 'project-brief.md', agent: 'Analyst' },
+    { name: 'requirements.md', agent: 'Requirements Analyst' }
+  ],
+  stack_selection: [
+    { name: 'stack-recommendation.md', agent: 'Stack Selector' },
+    { name: 'technology-rationale.md', agent: 'Stack Selector' }
+  ],
+  spec: [
+    { name: 'technical-spec.md', agent: 'Spec Writer' },
+    { name: 'api-design.md', agent: 'API Designer' },
+    { name: 'data-model.md', agent: 'Data Architect' }
+  ],
+  dependencies: [
+    { name: 'dependencies.json', agent: 'Dependency Analyzer' },
+    { name: 'package-recommendations.md', agent: 'Dependency Analyzer' }
+  ],
+  solutioning: [
+    { name: 'implementation-plan.md', agent: 'Solution Architect' },
+    { name: 'project-structure.md', agent: 'Solution Architect' },
+    { name: 'final-spec.md', agent: 'Spec Finalizer' }
+  ]
+}
+
 async function simulateOrchestration(projectId: string) {
   const state = orchestrationStates.get(projectId)
   if (!state) return
-  
+
   try {
-    // Simulate artifact generation
-    const mockArtifacts = [
-      {
+    const currentPhase = state.currentPhase
+    const artifacts = phaseArtifacts[currentPhase] || []
+
+    // Generate artifacts for current phase with delays
+    for (let i = 0; i < artifacts.length; i++) {
+      // Check if still running (user may have paused)
+      const currentState = orchestrationStates.get(projectId)
+      if (!currentState?.isRunning) return
+
+      const artifact = artifacts[i]
+
+      // Update current agent
+      currentState.currentAgent = artifact.agent
+      currentState.estimatedTimeRemaining = (artifacts.length - i) * 2
+
+      // Wait before creating artifact (simulate AI processing)
+      await new Promise(resolve => setTimeout(resolve, 1500))
+
+      // Check again if still running
+      if (!orchestrationStates.get(projectId)?.isRunning) return
+
+      // Create the artifact
+      await db.insert(projectArtifacts).values({
         id: uuidv4(),
         projectId,
-        phase: state.currentPhase,
-        artifactName: `${state.currentPhase}-artifact.md`,
+        phase: currentPhase,
+        artifactName: artifact.name,
         validationStatus: 'pass' as const,
         validationErrors: [] as string[],
-        qualityScore: 85,
+        qualityScore: Math.floor(Math.random() * 15) + 85, // 85-100
         createdAt: new Date(),
         updatedAt: new Date()
-      }
-    ]
-    
-    for (const artifact of mockArtifacts) {
-      await db.insert(projectArtifacts).values(artifact)
+      })
     }
-    
-    // Update state
-    state.isRunning = false
-    state.progress = calculateProgress(state.currentPhase, state)
-    
+
+    // Phase complete - advance to next phase
+    const nextPhase = getNextPhase(currentPhase)
+
+    if (nextPhase) {
+      // Get current project data
+      const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
+      if (!project) return
+
+      const currentPhases = (project.phasesCompleted as string[]) || []
+
+      // Update project to next phase
+      await db
+        .update(projects)
+        .set({
+          currentPhase: nextPhase as typeof project.currentPhase,
+          phasesCompleted: [...currentPhases, currentPhase],
+          updatedAt: new Date()
+        })
+        .where(eq(projects.id, projectId))
+
+      // Record phase transition
+      await db.insert(phaseHistory).values({
+        id: uuidv4(),
+        projectId,
+        fromPhase: currentPhase,
+        toPhase: nextPhase,
+        artifactsGenerated: artifacts.map(a => a.name),
+        validationPassed: true,
+        transitionedAt: new Date()
+      })
+
+      // Update state for next phase
+      const updatedState = orchestrationStates.get(projectId)
+      if (updatedState) {
+        updatedState.currentPhase = nextPhase
+        updatedState.progress = calculateProgress(nextPhase)
+
+        // Check if we need approval before continuing
+        if (nextPhase === 'stack_selection' || nextPhase === 'dependencies') {
+          // Pause for approval
+          updatedState.isRunning = false
+          updatedState.currentAgent = undefined
+          updatedState.estimatedTimeRemaining = undefined
+        } else if (nextPhase !== 'done') {
+          // Continue to next phase automatically
+          simulateOrchestration(projectId)
+        } else {
+          // Done!
+          updatedState.isRunning = false
+          updatedState.currentAgent = undefined
+          updatedState.estimatedTimeRemaining = undefined
+        }
+      }
+    } else {
+      // Already at final phase
+      const finalState = orchestrationStates.get(projectId)
+      if (finalState) {
+        finalState.isRunning = false
+        finalState.currentAgent = undefined
+      }
+    }
+
   } catch (error) {
     console.error('Error in orchestration simulation:', error)
-    state.isRunning = false
+    const errorState = orchestrationStates.get(projectId)
+    if (errorState) {
+      errorState.isRunning = false
+    }
   }
 }
 

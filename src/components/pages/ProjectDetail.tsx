@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { ArrowLeft, Play, Pause, RotateCcw, Download, FileText, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ArrowLeft, Play, Pause, RotateCcw, Download, FileText, CheckCircle, Clock, AlertCircle, Loader2, X } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 import type { ProjectResponse, ProjectArtifactResponse, OrchestrationProgress } from '@/lib/api'
 
@@ -72,6 +73,9 @@ export function ProjectDetail() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isOrchestrating, setIsOrchestrating] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [selectedArtifact, setSelectedArtifact] = useState<ProjectArtifactResponse | null>(null)
+  const [previewOpen, setPreviewOpen] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -176,6 +180,34 @@ export function ProjectDetail() {
     }
   }
 
+  const handleDownload = async () => {
+    if (!id || !project) return
+
+    try {
+      setIsDownloading(true)
+      const blob = await apiClient.downloadProject(id)
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${project.slug}-project.zip`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to download project')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  const handlePreviewArtifact = (artifact: ProjectArtifactResponse) => {
+    setSelectedArtifact(artifact)
+    setPreviewOpen(true)
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -200,7 +232,10 @@ export function ProjectDetail() {
     )
   }
 
-  const currentPhaseArtifacts = artifacts.filter(a => a.phase === project.currentPhase)
+  // Show all artifacts, grouped by phase
+  const sortedArtifacts = [...artifacts].sort((a, b) =>
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
 
   return (
     <div className="space-y-8">
@@ -220,13 +255,13 @@ export function ProjectDetail() {
         </div>
         
         <div className="flex items-center space-x-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Download ZIP
-          </Button>
-          <Button>
-            <FileText className="h-4 w-4 mr-2" />
-            View Specs
+          <Button variant="outline" onClick={handleDownload} disabled={isDownloading}>
+            {isDownloading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            {isDownloading ? 'Downloading...' : 'Download ZIP'}
           </Button>
         </div>
       </div>
@@ -266,6 +301,12 @@ export function ProjectDetail() {
                     <span>{orchestrationProgress.progress}%</span>
                   </div>
                   <Progress value={orchestrationProgress.progress} className="w-full" />
+                  {orchestrationProgress.currentAgent && isOrchestrating && (
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <span>Agent: {orchestrationProgress.currentAgent}</span>
+                    </div>
+                  )}
                 </div>
               )}
               
@@ -290,9 +331,13 @@ export function ProjectDetail() {
                 <div className="text-center py-4">
                   <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">Project orchestration complete!</p>
-                  <Button className="mt-2">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Final Spec
+                  <Button className="mt-2" onClick={handleDownload} disabled={isDownloading}>
+                    {isDownloading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4 mr-2" />
+                    )}
+                    {isDownloading ? 'Downloading...' : 'Download Final Spec'}
                   </Button>
                 </div>
               ) : (
@@ -368,21 +413,25 @@ export function ProjectDetail() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {currentPhaseArtifacts.length > 0 ? (
-                currentPhaseArtifacts.map((artifact) => (
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {sortedArtifacts.length > 0 ? (
+                sortedArtifacts.map((artifact) => (
                   <div key={artifact.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center space-x-3">
                       {getArtifactStatusIcon(artifact.validationStatus)}
                       <div>
                         <div className="font-medium text-sm">{artifact.artifactName}</div>
                         <div className="text-xs text-muted-foreground">
-                          Quality: {artifact.qualityScore || 'N/A'}
+                          {artifact.phase.replace('_', ' ')} • Quality: {artifact.qualityScore || 'N/A'}
                         </div>
                       </div>
                     </div>
                     {artifact.validationStatus === 'pass' && (
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handlePreviewArtifact(artifact)}
+                      >
                         <FileText className="h-3 w-3" />
                       </Button>
                     )}
@@ -401,6 +450,403 @@ export function ProjectDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Artifact Preview Dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>{selectedArtifact?.artifactName}</span>
+            </DialogTitle>
+            <DialogDescription>
+              Phase: {selectedArtifact?.phase.replace('_', ' ')} • Quality Score: {selectedArtifact?.qualityScore || 'N/A'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted p-4 rounded-lg">
+              <pre className="text-sm whitespace-pre-wrap font-mono">
+                {selectedArtifact ? generateArtifactContent(selectedArtifact, project) : ''}
+              </pre>
+            </div>
+            <div className="mt-4 flex justify-between items-center text-xs text-muted-foreground">
+              <span>Created: {selectedArtifact ? new Date(selectedArtifact.createdAt).toLocaleString() : ''}</span>
+              <Badge variant={selectedArtifact?.validationStatus === 'pass' ? 'default' : 'secondary'}>
+                {selectedArtifact?.validationStatus.toUpperCase()}
+              </Badge>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
+}
+
+// Helper function to generate artifact content preview
+function generateArtifactContent(artifact: ProjectArtifactResponse, project: ProjectResponse | null): string {
+  const projectName = project?.name || 'Project'
+  const projectDesc = project?.description || 'No description'
+  const projectIdea = project?.idea || 'No vision provided'
+
+  switch (artifact.artifactName) {
+    case 'constitution.md':
+      return `# ${projectName} Constitution
+
+## Project Overview
+${projectDesc}
+
+## Core Principles
+1. User-centric design
+2. Maintainable and scalable architecture
+3. Security-first approach
+4. Performance optimization
+
+## Success Criteria
+- All core features implemented
+- Test coverage > 80%
+- Performance benchmarks met
+- Documentation complete
+
+Generated by Spec-Drive Orchestrator`
+
+    case 'project-brief.md':
+      return `# ${projectName} - Project Brief
+
+## Vision
+${projectIdea}
+
+## Objectives
+- Deliver a high-quality solution
+- Meet all functional requirements
+- Ensure excellent user experience
+- Maintain code quality standards
+
+## Scope
+This project encompasses the full development lifecycle from requirements gathering to deployment.
+
+## Timeline
+Estimated completion based on complexity analysis.
+
+Generated by Spec-Drive Orchestrator`
+
+    case 'requirements.md':
+      return `# ${projectName} Requirements
+
+## Functional Requirements
+1. User authentication and authorization
+2. Core business logic implementation
+3. Data persistence and retrieval
+4. API endpoints for all operations
+5. User interface components
+
+## Non-Functional Requirements
+- Response time < 200ms for API calls
+- 99.9% uptime target
+- WCAG 2.1 AA compliance
+- Mobile-responsive design
+
+## Constraints
+- Technology stack as specified
+- Budget and timeline constraints
+- Third-party service dependencies
+
+Generated by Spec-Drive Orchestrator`
+
+    case 'stack-recommendation.md':
+      return `# Technology Stack Recommendation
+
+## Frontend
+- React 18+ with TypeScript
+- Tailwind CSS for styling
+- React Query for data fetching
+- React Router for navigation
+
+## Backend
+- Node.js with Express/Fastify
+- TypeScript for type safety
+- PostgreSQL database
+- Redis for caching
+
+## Infrastructure
+- Docker containerization
+- CI/CD with GitHub Actions
+- Cloud deployment (AWS/GCP/Azure)
+
+## Rationale
+Selected for scalability, developer experience, and ecosystem support.
+
+Generated by Spec-Drive Orchestrator`
+
+    case 'technology-rationale.md':
+      return `# Technology Selection Rationale
+
+## Why This Stack?
+
+### Performance
+- Server-side rendering capabilities
+- Efficient data fetching patterns
+- Optimized bundle sizes
+
+### Developer Experience
+- Strong TypeScript support
+- Extensive tooling ecosystem
+- Active community support
+
+### Scalability
+- Horizontal scaling capabilities
+- Microservices-ready architecture
+- Cloud-native design patterns
+
+### Security
+- Built-in security features
+- Regular security updates
+- Enterprise-grade authentication
+
+Generated by Spec-Drive Orchestrator`
+
+    case 'technical-spec.md':
+      return `# ${projectName} Technical Specification
+
+## Architecture Overview
+Microservices-based architecture with event-driven communication.
+
+## Component Design
+- Authentication Service
+- Core Business Service
+- Notification Service
+- API Gateway
+
+## Data Flow
+1. Client request → API Gateway
+2. Gateway → Appropriate service
+3. Service → Database/Cache
+4. Response → Client
+
+## Security Architecture
+- JWT-based authentication
+- Role-based access control
+- Encrypted data at rest and in transit
+
+Generated by Spec-Drive Orchestrator`
+
+    case 'api-design.md':
+      return `# API Design Document
+
+## REST API Endpoints
+
+### Authentication
+- POST /api/auth/login
+- POST /api/auth/register
+- POST /api/auth/refresh
+- POST /api/auth/logout
+
+### Resources
+- GET /api/resources
+- GET /api/resources/:id
+- POST /api/resources
+- PATCH /api/resources/:id
+- DELETE /api/resources/:id
+
+## Response Format
+\`\`\`json
+{
+  "success": boolean,
+  "data": object | array,
+  "error": string | null,
+  "meta": { pagination, etc. }
+}
+\`\`\`
+
+Generated by Spec-Drive Orchestrator`
+
+    case 'data-model.md':
+      return `# Data Model Design
+
+## Entity Relationship
+
+### Users
+- id (UUID, PK)
+- email (VARCHAR, UNIQUE)
+- passwordHash (VARCHAR)
+- createdAt (TIMESTAMP)
+- updatedAt (TIMESTAMP)
+
+### Resources
+- id (UUID, PK)
+- userId (UUID, FK)
+- name (VARCHAR)
+- data (JSONB)
+- createdAt (TIMESTAMP)
+- updatedAt (TIMESTAMP)
+
+## Indexes
+- users_email_idx
+- resources_user_id_idx
+
+## Relationships
+- User has many Resources
+- Resource belongs to User
+
+Generated by Spec-Drive Orchestrator`
+
+    case 'dependencies.json':
+      return `{
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.0.0",
+    "tailwindcss": "^3.4.0",
+    "express": "^4.18.0",
+    "drizzle-orm": "^0.29.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  }
+}`
+
+    case 'package-recommendations.md':
+      return `# Package Recommendations
+
+## Core Dependencies
+- **React** - UI library
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Drizzle ORM** - Database ORM
+
+## Utility Libraries
+- **Zod** - Schema validation
+- **date-fns** - Date manipulation
+- **lodash-es** - Utility functions
+
+## Development Tools
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **Jest** - Testing framework
+- **Husky** - Git hooks
+
+## Security Notes
+All packages reviewed for vulnerabilities.
+Regular updates recommended.
+
+Generated by Spec-Drive Orchestrator`
+
+    case 'implementation-plan.md':
+      return `# Implementation Plan
+
+## Phase 1: Foundation (Week 1-2)
+- Project setup and configuration
+- Database schema implementation
+- Authentication system
+- Basic API structure
+
+## Phase 2: Core Features (Week 3-4)
+- Business logic implementation
+- API endpoints
+- Frontend components
+- Data validation
+
+## Phase 3: Integration (Week 5)
+- Frontend-backend integration
+- Third-party services
+- Error handling
+- Logging and monitoring
+
+## Phase 4: Quality (Week 6)
+- Unit and integration tests
+- Performance optimization
+- Security audit
+- Documentation
+
+## Phase 5: Deployment (Week 7)
+- CI/CD pipeline
+- Production deployment
+- Monitoring setup
+- Launch preparation
+
+Generated by Spec-Drive Orchestrator`
+
+    case 'project-structure.md':
+      return `# Project Structure
+
+\`\`\`
+${projectName.toLowerCase().replace(/\s+/g, '-')}/
+├── src/
+│   ├── components/
+│   │   ├── ui/
+│   │   └── pages/
+│   ├── lib/
+│   │   ├── api.ts
+│   │   └── utils.ts
+│   ├── hooks/
+│   ├── server/
+│   │   ├── routes/
+│   │   └── middleware/
+│   ├── db/
+│   │   └── schema.ts
+│   └── types/
+├── tests/
+├── public/
+├── package.json
+├── tsconfig.json
+└── README.md
+\`\`\`
+
+## Directory Conventions
+- /components - React components
+- /lib - Utility functions
+- /server - Backend code
+- /db - Database schemas
+
+Generated by Spec-Drive Orchestrator`
+
+    case 'final-spec.md':
+      return `# ${projectName} - Final Specification
+
+## Executive Summary
+${projectDesc}
+
+## Vision
+${projectIdea}
+
+## Technical Architecture
+Complete microservices architecture with React frontend and Node.js backend.
+
+## Key Deliverables
+1. Fully functional web application
+2. RESTful API
+3. Database with migrations
+4. Comprehensive test suite
+5. CI/CD pipeline
+6. Documentation
+
+## Quality Metrics
+- Code coverage: 80%+
+- Performance: <200ms response time
+- Accessibility: WCAG 2.1 AA
+- Security: OWASP Top 10 compliant
+
+## Next Steps
+1. Review this specification
+2. Approve technology stack
+3. Begin implementation
+4. Regular progress reviews
+
+---
+Generated by Spec-Drive Orchestrator
+Quality Score: ${artifact.qualityScore}/100`
+
+    default:
+      return `# ${artifact.artifactName}
+
+Phase: ${artifact.phase}
+Status: ${artifact.validationStatus}
+Quality Score: ${artifact.qualityScore}
+
+Content for this artifact will be generated during the actual orchestration process.
+
+Generated by Spec-Drive Orchestrator`
+  }
 }
