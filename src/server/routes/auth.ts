@@ -148,6 +148,8 @@ router.post('/login', async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const clientIp = req.ip || 'unknown';
 
+    console.log(`[LOGIN] Login attempt for email: ${email}`);
+
     // Check rate limit
     const rateLimit = await checkRateLimit(clientIp, 'login');
     if (!rateLimit.allowed) {
@@ -166,12 +168,19 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // Find user by email
+    console.log(`[LOGIN] Querying database for user with email: ${email}`);
     const foundUsers = await db
       .select()
       .from(users)
       .where(eq(users.email, email));
 
+    console.log(`[LOGIN] Database query returned ${foundUsers.length} user(s)`);
+    if (foundUsers.length > 0) {
+      console.log(`[LOGIN] User found: ${foundUsers[0].id}, email: ${foundUsers[0].email}`);
+    }
+
     if (foundUsers.length === 0) {
+      console.log(`[LOGIN] No user found with email: ${email}`);
       return res.status(401).json({
         success: false,
         error: 'Invalid email or password',
@@ -181,14 +190,39 @@ router.post('/login', async (req: Request, res: Response) => {
     const user = foundUsers[0];
 
     // Verify password
-    const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+    let passwordMatch = false;
+    try {
+      console.log(`[LOGIN] Attempting password verification for user ${user.id} (${email})`);
+      console.log(`[LOGIN] Password hash format check:`, {
+        hashExists: !!user.passwordHash,
+        hashLength: user.passwordHash?.length,
+        hashPrefix: user.passwordHash?.substring(0, 4),
+      });
+
+      passwordMatch = await bcrypt.compare(password, user.passwordHash);
+      console.log(`[LOGIN] Password match result:`, passwordMatch);
+    } catch (bcryptError) {
+      console.error('[LOGIN] Bcrypt comparison error:', {
+        error: bcryptError instanceof Error ? bcryptError.message : String(bcryptError),
+        errorType: bcryptError instanceof Error ? bcryptError.constructor.name : typeof bcryptError,
+        stack: bcryptError instanceof Error ? bcryptError.stack : undefined,
+        userHash: user.passwordHash?.substring(0, 10),
+      });
+      return res.status(500).json({
+        success: false,
+        error: 'Password verification failed',
+      });
+    }
 
     if (!passwordMatch) {
+      console.log(`[LOGIN] Password mismatch for user ${user.id} (${email})`);
       return res.status(401).json({
         success: false,
         error: 'Invalid email or password',
       });
     }
+
+    console.log(`[LOGIN] Password verified successfully for user ${user.id} (${email})`);
 
     // Generate tokens
     const accessToken = generateAccessToken(user.id, user.email);
@@ -219,7 +253,11 @@ router.post('/login', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('[LOGIN] Unexpected error:', {
+      message: error instanceof Error ? error.message : String(error),
+      errorType: error instanceof Error ? error.constructor.name : typeof error,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     res.status(500).json({
       success: false,
       error: 'Login failed',

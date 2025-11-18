@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { signOut, getCurrentUser } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Plus, LogOut, User as UserIcon } from 'lucide-react'
+import { Plus, LogOut, User as UserIcon, Sun, Moon } from 'lucide-react'
 import type { User } from '@/lib/auth'
 
 const Logo = () => (
@@ -24,6 +24,7 @@ export function Header() {
   const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
   const isActive = (path: string) => {
     return location.pathname === path
@@ -43,6 +44,30 @@ export function Header() {
 
     loadUser()
   }, [location])  // Refresh user check whenever location changes
+
+  useEffect(() => {
+    const stored = localStorage.getItem('theme')
+    const mediaPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const initial = stored === 'dark' || (!stored && mediaPrefersDark) ? 'dark' : 'light'
+    applyTheme(initial)
+    setTheme(initial)
+  }, [])
+
+  const applyTheme = (value: 'light' | 'dark') => {
+    const root = document.documentElement
+    if (value === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+    localStorage.setItem('theme', value)
+  }
+
+  const toggleTheme = () => {
+    const next = theme === 'light' ? 'dark' : 'light'
+    applyTheme(next)
+    setTheme(next)
+  }
 
   const handleSignOut = async () => {
     try {
@@ -130,6 +155,20 @@ export function Header() {
                 <span className="truncate max-w-[180px]">{user.email}</span>
               </div>
             )}
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleTheme}
+              className="h-9 w-9 rounded-lg border-border/80 shadow-[var(--shadow-xs)]"
+              aria-label="Toggle theme"
+            >
+              {theme === 'light' ? (
+                <Moon className="h-4 w-4 text-foreground" />
+              ) : (
+                <Sun className="h-4 w-4 text-foreground" />
+              )}
+            </Button>
 
             <Button
               variant={user ? 'outline' : 'default'}
