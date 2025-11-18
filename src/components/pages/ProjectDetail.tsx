@@ -81,12 +81,20 @@ export function ProjectDetail() {
     if (id) {
       loadProject()
       loadOrchestrationProgress()
-      
-      // Poll for orchestration progress updates
-      const interval = setInterval(loadOrchestrationProgress, 2000)
-      return () => clearInterval(interval)
     }
   }, [id])
+
+  // Separate effect for polling - only poll when orchestrating or project not done
+  useEffect(() => {
+    if (!id || !project) return
+
+    // Don't poll if project is done
+    if (project.currentPhase === 'done') return
+
+    // Poll for orchestration progress updates
+    const interval = setInterval(loadOrchestrationProgress, 2000)
+    return () => clearInterval(interval)
+  }, [id, project?.currentPhase, isOrchestrating])
 
   const loadProject = async () => {
     if (!id) return
@@ -107,18 +115,24 @@ export function ProjectDetail() {
 
   const loadOrchestrationProgress = async () => {
     if (!id) return
-    
+
     try {
       const progress = await apiClient.getOrchestrationProgress(id)
       setOrchestrationProgress(progress)
       setIsOrchestrating(progress.isRunning)
-      
+
       // If orchestration completed, reload project data
       if (!progress.isRunning && project && progress.currentPhase !== project.currentPhase) {
         await loadProject()
       }
-    } catch (err) {
-      console.error('Failed to load orchestration progress:', err)
+    } catch (err: any) {
+      // Stop polling on auth errors (401) - user needs to re-login
+      if (err?.status === 401) {
+        console.error('Authentication expired, stopping polling')
+        setIsOrchestrating(false)
+      } else {
+        console.error('Failed to load orchestration progress:', err)
+      }
     }
   }
 

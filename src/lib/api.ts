@@ -284,8 +284,14 @@ export class ApiClient {
 
   // Download project artifacts
   async downloadProject(projectId: string): Promise<Blob> {
+    const token = getAuthToken();
     const response = await fetch(
-      `${this.baseUrl}/projects/${projectId}/download`
+      `${this.baseUrl}/projects/${projectId}/download`,
+      {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
     );
 
     if (!response.ok) {
