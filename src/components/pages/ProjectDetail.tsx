@@ -7,39 +7,51 @@ import { Progress } from '@/components/ui/progress'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ArrowLeft, Play, Pause, RotateCcw, Download, FileText, CheckCircle, Clock, AlertCircle, Loader2, X } from 'lucide-react'
 import { apiClient } from '@/lib/api'
+import { cn } from '@/lib/utils'
 import type { ProjectResponse, ProjectArtifactResponse, OrchestrationProgress } from '@/lib/api'
+
+const phases = [
+  { key: 'analysis', label: 'Analysis' },
+  { key: 'stack_selection', label: 'Stack Selection' },
+  { key: 'spec', label: 'Spec' },
+  { key: 'dependencies', label: 'Dependencies' },
+  { key: 'solutioning', label: 'Solutioning' },
+  { key: 'done', label: 'Done' },
+]
 
 function getStatusIcon(status: string) {
   switch (status) {
     case 'analysis':
-      return <Clock className="h-4 w-4 text-blue-500" />
+      return <Clock className="h-4 w-4 text-primary" />
     case 'spec':
-      return <FileText className="h-4 w-4 text-yellow-500" />
+      return <FileText className="h-4 w-4 text-primary" />
     case 'dependencies':
-      return <AlertCircle className="h-4 w-4 text-orange-500" />
+      return <AlertCircle className="h-4 w-4 text-accent-foreground" />
     case 'solutioning':
-      return <AlertCircle className="h-4 w-4 text-purple-500" />
+      return <AlertCircle className="h-4 w-4 text-accent-foreground" />
     case 'done':
-      return <CheckCircle className="h-4 w-4 text-green-500" />
+      return <CheckCircle className="h-4 w-4 text-primary" />
     default:
-      return <Clock className="h-4 w-4 text-gray-500" />
+      return <Clock className="h-4 w-4 text-muted-foreground" />
   }
 }
 
-function getStatusColor(status: string) {
+function getStatusBadgeClasses(status: string) {
   switch (status) {
     case 'analysis':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-primary/10 text-primary'
+    case 'stack_selection':
+      return 'bg-secondary text-secondary-foreground'
     case 'spec':
-      return 'bg-yellow-100 text-yellow-800'
+      return 'bg-primary/10 text-primary'
     case 'dependencies':
-      return 'bg-orange-100 text-orange-800'
+      return 'bg-accent/60 text-accent-foreground'
     case 'solutioning':
-      return 'bg-purple-100 text-purple-800'
+      return 'bg-accent/60 text-accent-foreground'
     case 'done':
-      return 'bg-green-100 text-green-800'
+      return 'bg-primary text-primary-foreground'
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-muted text-foreground/80'
   }
 }
 
@@ -238,7 +250,7 @@ export function ProjectDetail() {
         <h3 className="mt-2 text-sm font-semibold text-gray-900">Error loading project</h3>
         <p className="mt-1 text-sm text-gray-500">{error || 'Project not found'}</p>
         <div className="mt-6">
-          <Button onClick={() => navigate('/')}>
+          <Button onClick={() => navigate('/dashboard')}>
             Back to Dashboard
           </Button>
         </div>
@@ -254,31 +266,58 @@ export function ProjectDetail() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={() => navigate('/')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-            <p className="text-muted-foreground">
-              {project.description}
-            </p>
+      <Card className="overflow-hidden border border-border/80 bg-gradient-to-br from-background via-card to-secondary/40 shadow-[var(--shadow-lg)]">
+        <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs">
+              <Badge className="bg-primary/10 text-primary shadow-[var(--shadow-xs)]">Project</Badge>
+              <span className="text-muted-foreground">Workspace</span>
+              <span className="text-foreground font-medium">{project.name}</span>
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground">{project.name}</h1>
+              <p className="text-sm text-muted-foreground max-w-2xl">{project.description}</p>
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              <Badge className={getStatusBadgeClasses(project.currentPhase)}>
+                {project.currentPhase.replace('_', ' ').toUpperCase()}
+              </Badge>
+              <span className="text-muted-foreground">Updated {new Date(project.updatedAt).toLocaleDateString()}</span>
+            </div>
           </div>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={handleDownload} disabled={isDownloading}>
-            {isDownloading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4 mr-2" />
+          <div className="flex flex-col items-end gap-3">
+            {orchestrationProgress && (
+              <div className="w-full min-w-[240px] space-y-2">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>Progress</span>
+                  <span className="font-medium text-foreground">{orchestrationProgress.progress}%</span>
+                </div>
+                <Progress value={orchestrationProgress.progress} className="w-full" />
+                {orchestrationProgress.currentAgent && isOrchestrating && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>Agent: {orchestrationProgress.currentAgent}</span>
+                  </div>
+                )}
+              </div>
             )}
-            {isDownloading ? 'Downloading...' : 'Download ZIP'}
-          </Button>
-        </div>
-      </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" onClick={() => navigate('/dashboard')} className="rounded-lg">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
+              <Button variant="outline" onClick={handleDownload} disabled={isDownloading} className="rounded-lg shadow-[var(--shadow-sm)]">
+                {isDownloading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
+                {isDownloading ? 'Downloading...' : 'Download ZIP'}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Error Message */}
       {error && (
@@ -289,8 +328,8 @@ export function ProjectDetail() {
       )}
 
       {/* Project Status */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card className="border border-border/80 shadow-[var(--shadow-sm)]">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               {getStatusIcon(project.currentPhase)}
@@ -303,7 +342,7 @@ export function ProjectDetail() {
                 <span className="font-medium capitalize">
                   {project.currentPhase.replace('_', ' ')}
                 </span>
-                <Badge className={getStatusColor(project.currentPhase)}>
+                <Badge className={getStatusBadgeClasses(project.currentPhase)}>
                   {project.currentPhase.replace('_', ' ').toUpperCase()}
                 </Badge>
               </div>
@@ -332,7 +371,7 @@ export function ProjectDetail() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-border/80 shadow-[var(--shadow-sm)]">
           <CardHeader>
             <CardTitle>Orchestration Controls</CardTitle>
             <CardDescription>
@@ -343,7 +382,7 @@ export function ProjectDetail() {
             <div className="space-y-4">
               {project.currentPhase === 'done' ? (
                 <div className="text-center py-4">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
+                  <CheckCircle className="h-12 w-12 text-primary mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">Project orchestration complete!</p>
                   <Button className="mt-2" onClick={handleDownload} disabled={isDownloading}>
                     {isDownloading ? (
@@ -355,11 +394,11 @@ export function ProjectDetail() {
                   </Button>
                 </div>
               ) : (
-                <div className="flex space-x-2">
+                <div className="flex gap-2">
                   {!isOrchestrating ? (
                     <Button 
                       onClick={handleStartOrchestration}
-                      className="flex-1"
+                      className="flex-1 rounded-lg shadow-[var(--shadow-sm)]"
                     >
                       <Play className="h-4 w-4 mr-2" />
                       {orchestrationProgress?.currentAgent ? 'Continue Orchestration' : 'Start Analysis'}
@@ -368,13 +407,13 @@ export function ProjectDetail() {
                     <Button 
                       variant="outline" 
                       onClick={handlePauseOrchestration}
-                      className="flex-1"
+                      className="flex-1 rounded-lg"
                     >
                       <Pause className="h-4 w-4 mr-2" />
                       Pause
                     </Button>
                   )}
-                  <Button variant="outline">
+                  <Button variant="outline" className="rounded-lg">
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Restart
                   </Button>
@@ -409,13 +448,44 @@ export function ProjectDetail() {
       </div>
 
       {/* Project Details */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Project Vision</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">{project.idea}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-border/80 shadow-[var(--shadow-sm)]">
+          <CardHeader>
+            <CardTitle>Guided phases</CardTitle>
+            <CardDescription>Track where Alora is in the 6-step flow.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {phases.map((phase) => {
+              const isCurrent = project.currentPhase === phase.key
+              const isDone = phases.findIndex(p => p.key === project.currentPhase) > phases.findIndex(p => p.key === phase.key)
+              return (
+                <div
+                  key={phase.key}
+                  className="flex items-center justify-between rounded-lg border border-border/60 bg-card/70 px-3 py-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={cn(
+                      'flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold',
+                      isCurrent ? 'bg-primary/10 text-primary' : isDone ? 'bg-secondary text-secondary-foreground' : 'bg-muted text-muted-foreground'
+                    )}>
+                      {phases.findIndex(p => p.key === phase.key) + 1}
+                    </span>
+                    <span className="text-sm text-foreground">{phase.label}</span>
+                  </div>
+                  {isCurrent && <Badge className="bg-primary/10 text-primary">Now</Badge>}
+                  {!isCurrent && isDone && <Badge variant="outline" className="text-xs">Done</Badge>}
+                </div>
+              )
+            })}
           </CardContent>
         </Card>
 
