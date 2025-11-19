@@ -5,6 +5,7 @@ import { db } from '@/db';
 import { projects, projectArtifacts } from '@/db/schema';
 import { AuthenticatedRequest, authMiddleware } from '../middleware/auth';
 import { v4 as uuidv4 } from 'uuid';
+import { continueOrchestrationAfterApproval } from './orchestration';
 
 const router = Router();
 
@@ -205,6 +206,9 @@ router.post(
           .json({ success: false, error: 'Project not found' });
       }
 
+      // Automatically continue orchestration after approval
+      continueOrchestrationAfterApproval(id);
+
       res.json({ success: true, data: updatedProject });
     } catch (error) {
       console.error('Error approving stack:', error);
@@ -241,6 +245,9 @@ router.post(
           .status(404)
           .json({ success: false, error: 'Project not found' });
       }
+
+      // Automatically continue orchestration after approval
+      continueOrchestrationAfterApproval(id);
 
       res.json({ success: true, data: updatedProject });
     } catch (error) {

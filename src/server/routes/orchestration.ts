@@ -243,30 +243,38 @@ interface OrchestrationState {
   startTime?: Date
 }
 
-// Phase artifacts configuration
+// Phase artifacts configuration - aligned with spec-driven-orchestrator-v1.1.md
 const phaseArtifacts: Record<string, { name: string; agent: string }[]> = {
   analysis: [
     { name: 'constitution.md', agent: 'Analyst' },
     { name: 'project-brief.md', agent: 'Analyst' },
-    { name: 'requirements.md', agent: 'Requirements Analyst' }
+    { name: 'personas.md', agent: 'Analyst' }
   ],
   stack_selection: [
-    { name: 'stack-recommendation.md', agent: 'Stack Selector' },
-    { name: 'technology-rationale.md', agent: 'Stack Selector' }
+    { name: 'plan.md', agent: 'Architect' },
+    { name: 'README.md', agent: 'Architect' },
+    { name: 'stack-proposal.md', agent: 'Architect' },
+    { name: 'stack-scorecard.json', agent: 'Architect' }
   ],
   spec: [
-    { name: 'technical-spec.md', agent: 'Spec Writer' },
-    { name: 'api-design.md', agent: 'API Designer' },
-    { name: 'data-model.md', agent: 'Data Architect' }
+    { name: 'PRD.md', agent: 'PM' },
+    { name: 'data-model.md', agent: 'Architect' },
+    { name: 'api-spec.json', agent: 'Architect' },
+    { name: 'traceability.json', agent: 'Architect' }
   ],
   dependencies: [
-    { name: 'dependencies.json', agent: 'Dependency Analyzer' },
-    { name: 'package-recommendations.md', agent: 'Dependency Analyzer' }
+    { name: 'DEPENDENCIES.md', agent: 'DevOps' },
+    { name: 'dependency-proposal.json', agent: 'DevOps' },
+    { name: 'sbom.json', agent: 'DevOps' }
   ],
   solutioning: [
-    { name: 'implementation-plan.md', agent: 'Solution Architect' },
-    { name: 'project-structure.md', agent: 'Solution Architect' },
-    { name: 'final-spec.md', agent: 'Spec Finalizer' }
+    { name: 'architecture.md', agent: 'Architect' },
+    { name: 'epics.md', agent: 'Scrum Master' },
+    { name: 'tasks.md', agent: 'Scrum Master' },
+    { name: 'traceability.json', agent: 'Architect' }
+  ],
+  done: [
+    { name: 'HANDOFF.md', agent: 'Orchestrator' }
   ]
 }
 
@@ -310,7 +318,20 @@ async function simulateOrchestration(projectId: string) {
       })
     }
 
-    // Phase complete - advance to next phase
+    // Phase complete - check if we need approval before advancing
+    // Gates are at stack_selection and dependencies phases
+    if (currentPhase === 'stack_selection' || currentPhase === 'dependencies') {
+      // Pause for approval - don't advance yet
+      const pauseState = orchestrationStates.get(projectId)
+      if (pauseState) {
+        pauseState.isRunning = false
+        pauseState.currentAgent = undefined
+        pauseState.estimatedTimeRemaining = undefined
+      }
+      return
+    }
+
+    // Advance to next phase
     const nextPhase = getNextPhase(currentPhase)
 
     if (nextPhase) {
@@ -347,20 +368,12 @@ async function simulateOrchestration(projectId: string) {
         updatedState.currentPhase = nextPhase
         updatedState.progress = calculateProgress(nextPhase)
 
-        // Check if we need approval before continuing
-        if (nextPhase === 'stack_selection' || nextPhase === 'dependencies') {
-          // Pause for approval
-          updatedState.isRunning = false
-          updatedState.currentAgent = undefined
-          updatedState.estimatedTimeRemaining = undefined
-        } else if (nextPhase !== 'done') {
-          // Continue to next phase automatically
+        if (nextPhase === 'done') {
+          // Generate HANDOFF.md for done phase, then complete
           simulateOrchestration(projectId)
         } else {
-          // Done!
-          updatedState.isRunning = false
-          updatedState.currentAgent = undefined
-          updatedState.estimatedTimeRemaining = undefined
+          // Continue to next phase automatically
+          simulateOrchestration(projectId)
         }
       }
     } else {
@@ -379,6 +392,67 @@ async function simulateOrchestration(projectId: string) {
       errorState.isRunning = false
     }
   }
+}
+
+// Export function to restart orchestration after approval
+export async function continueOrchestrationAfterApproval(projectId: string) {
+  // Get current project data
+  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
+  if (!project) return
+
+  const currentPhase = project.currentPhase as string
+  const nextPhase = getNextPhase(currentPhase)
+
+  if (!nextPhase) return
+
+  // Advance to next phase
+  const currentPhases = (project.phasesCompleted as string[]) || []
+
+  await db
+    .update(projects)
+    .set({
+      currentPhase: nextPhase as typeof project.currentPhase,
+      phasesCompleted: [...currentPhases, currentPhase],
+      updatedAt: new Date()
+    })
+    .where(eq(projects.id, projectId))
+
+  // Record phase transition
+  await db.insert(phaseHistory).values({
+    id: uuidv4(),
+    projectId,
+    fromPhase: currentPhase,
+    toPhase: nextPhase,
+    artifactsGenerated: [],
+    validationPassed: true,
+    transitionedAt: new Date()
+  })
+
+  // Update or create orchestration state
+  const state = orchestrationStates.get(projectId)
+
+  if (state) {
+    state.isRunning = true
+    state.currentPhase = nextPhase
+    state.progress = calculateProgress(nextPhase)
+  } else {
+    orchestrationStates.set(projectId, {
+      isRunning: true,
+      currentPhase: nextPhase,
+      progress: calculateProgress(nextPhase),
+      currentAgent: getAgentForPhase(nextPhase),
+      startTime: new Date()
+    })
+  }
+
+  // Continue orchestration with new phase
+  simulateOrchestration(projectId)
+}
+
+// Helper to get agent name for a phase
+function getAgentForPhase(phase: string): string {
+  const artifacts = phaseArtifacts[phase]
+  return artifacts && artifacts.length > 0 ? artifacts[0].agent : 'Orchestrator'
 }
 
 export { router as orchestrationRouter }
